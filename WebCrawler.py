@@ -100,7 +100,6 @@ def pagehandler(pageurl, pageresponse, soup):
         print(str(pageurl) + ", " + str(word) + ", " + str(counts))
         cursor.callproc('sp_insertPage', (str(pageurl), str(word), counts))
         # print('For page:' + pageurl + ' -> ' + key + ': ' + str(value))
-    # cursor.callproc('sp_insertPage', ('www.facebook.com', 'alek', 21))
     return True
 
 
