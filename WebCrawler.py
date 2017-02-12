@@ -89,17 +89,19 @@ def pagehandler(pageurl, pageresponse, soup):
     text = (''.join(s.findAll(text=True)) for s in soup.findAll('p'))
     c = Counter(x.rstrip(punctuation).lower() for y in text for x in y.split())
 
+
     # put the words in the database
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    # cursor.callproc('sp_insertPage', pageurl, word, count)
-
     # print elements as key, value from list c
     for word, counts in [[k, v] for k, v in c.most_common() if len(k) > 3 and v > 3]:
-        print(str(pageurl) + ", " + str(word) + ", " + str(counts))
+        # print(str(pageurl) + ", " + str(word) + ", " + str(counts))
         cursor.callproc('sp_insertPage', (str(pageurl), str(word), counts))
+        conn.commit()
         # print('For page:' + pageurl + ' -> ' + key + ': ' + str(value))
+    cursor.close()
+    conn.close()
     return True
 
 
