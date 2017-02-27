@@ -6,8 +6,20 @@ from collections import Counter
 import collections
 from string import punctuation
 from urllib.parse import urldefrag, urljoin, urlparse
+import string
+import nltk
+from nltk.corpus import treebank
+from nltk.tree import Tree
 
 app = Flask(__name__)
+
+text = "Алек учи нов јазик"
+
+tokens = nltk.word_tokenize(text)
+tagged = nltk.pos_tag(tokens)
+
+entities = nltk.chunk.ne_chunk(tagged)
+
 
 mysql = MySQL()
 
@@ -89,15 +101,15 @@ def pagehandler(pageurl, pageresponse, soup):
     text = (''.join(s.findAll(text=True)) for s in soup.findAll('p'))
     c = Counter(x.rstrip(punctuation).lower() for y in text for x in y.split())
 
-
     # put the words in the database
     conn = mysql.connect()
     cursor = conn.cursor()
 
     # print elements as key, value from list c
     for word, counts in [[k, v] for k, v in c.most_common() if len(k) > 3 and v > 3]:
+        print(word)
         # print(str(pageurl) + ", " + str(word) + ", " + str(counts))
-        cursor.callproc('sp_insertPage', (str(pageurl), str(word), counts))
+        cursor.callproc('sp_insertPage', (str(pageurl), word, counts))
         conn.commit()
         # print('For page:' + pageurl + ' -> ' + key + ': ' + str(value))
     cursor.close()
@@ -105,7 +117,7 @@ def pagehandler(pageurl, pageresponse, soup):
     return True
 
 
-def crawler(startpage, maxpages=5, singledomain=True):
+def crawler(startpage, maxpages=1, singledomain=True):
     """Crawl the web starting from specified page.
         startpage = URL of starting page
         maxpages = maximum number of pages to crawl
@@ -146,8 +158,7 @@ def crawler(startpage, maxpages=5, singledomain=True):
                 if not url_in_list(link, crawled) and not url_in_list(link, pagequeue):
                     pagequeue.append(link)
 
-crawler("https://pymotw.com/2/collections/counter.html")
-
+crawler("https://en.wikipedia.org/wiki/Main_Page")
 
 @app.route('/')
 def hello_world():
